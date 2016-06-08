@@ -1,0 +1,67 @@
+.ng-scope {
+  text-align: center;
+}
+
+nav {
+  ul {
+    padding: 0;
+  }
+
+  li {
+    list-style: none;
+    display: inline-block;
+    margin-right: 1em;
+  }
+
+  a {
+    text-decoration: none;
+    font-size: 1.5em;
+
+    &:hover, &.active {
+      text-decoration: underline;
+    }
+  }
+}
+
+table {
+  border: 1px solid #000;
+  margin: 1em auto;
+  background: #000;
+
+  td {
+    background-repeat: no-repeat;
+  }
+}
+
+[type='number'] {
+  width: 2.5em;
+  margin: 0.5em;
+}
+
+button {
+  cursor: pointer;
+  margin: 0.5em;
+  padding: 0 1em;
+}
+
+.win {
+  display: none;
+  color: green;
+  font-size: 1.5em;
+
+  &.visible {
+    display: block;
+  }
+}
+
+ol {
+  list-style-position: inside;
+
+  li {
+    margin: 0.5em 0;
+  }
+
+  span {
+    font-weight: bold;
+  }
+}

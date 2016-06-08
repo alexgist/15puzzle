@@ -1,0 +1,9 @@
+<puzzle dimensions="{{rows}}-{{cols}}" image="{{::image}}" size="{{::size}}" ng-init="size='21em';image='images/cat.jpg'"></puzzle>
+
+<section>
+    <div class="win{{win_visible ? ' visible' : ''}}">Win!!!</div>
+    <button ng-click="startGame()" state="{{state}}">{{stateGame}}</button>
+    <div>Duration: <i>{{duration | utc | date:'HH:mm:ss'}}</i></div>
+    <label>Rows (2 - 10):</label><input type="number" name="rows" min="2" max="10" ng-model="rows" ng-init="rows=4">
+    <label>Columns (2 - 10):</label><input type="number" name="cols" min="2" max="10" ng-model="cols" ng-init="cols=4">
+</section>
