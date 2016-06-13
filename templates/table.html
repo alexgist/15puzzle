@@ -1,0 +1,6 @@
+<table style="width: {{puzzle.size}}; height: {{puzzle.size}};" ng-click="keymove()">
+    <tr ng-repeat="($row, row) in puzzle.tiles">
+        <td ng-repeat="($col, tile) in row" ng-click="puzzle.move($row, $col)" data-row="{{$row}}" data-col="{{$col}}"
+            title="{{tile.id}}" style="{{tile.bg}}" ng-class="{empty:tile.empty}"></td>
+    </tr>
+</table>

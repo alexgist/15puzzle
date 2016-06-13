@@ -4,11 +4,11 @@
     app.config(function($routeProvider) {
         $routeProvider.
         when('/game', {
-            templateUrl: 'page_game/game.html',
+            templateUrl: 'templates/game.html',
             controller: 'GameController'
         }).
         when('/leaderboard', {
-            templateUrl: 'page_leaderboard/leaderboard.html',
+            templateUrl: 'templates/leaderboard.html',
             controller: 'LeaderBoardController'
         }).
         otherwise({
@@ -31,9 +31,9 @@
                 $scope.stateGame = 'Stop Game';
                 $scope.state = 'on';
                 $scope.win_visible = false;
-                $scope.puzzle.shuffle();
+                $scope.$broadcast('start');
 
-                $scope.$watch('puzzle.isSuccess', function(){
+                $scope.$watch('puzzle.isSuccess', function(){ //todo: remove puzzle
                     if(!$scope.puzzle.isSuccess || $scope.state == 'off') return;
                     
                     $scope.state = 'off';
@@ -48,7 +48,7 @@
                     localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
 
                     $scope.duration = 0;
-                    $scope.puzzle.init();
+                    $scope.$broadcast('init');
                 });
 
                 stop = $interval(function(){ $scope.duration += 1000; }, 1000);
@@ -58,7 +58,7 @@
                 $scope.state = 'off';
                 $scope.duration = 0;
                 $scope.win_visible = false;
-                $scope.puzzle.init();
+                $scope.$broadcast('init');
             }
         };
 
@@ -81,7 +81,7 @@
         return {
             restrict: 'E',
             replace: true,
-            template: '<nav><ul><li ng-repeat="l in menu"><a ng-href="#{{l.href}}" class="{{l.active}}">{{l.text}}</a></li></ul></nav>',
+            templateUrl: 'templates/menu.html',
             link: function(scope){
                 scope.menu = [
                     { href: 'game', text: 'Puzzle Game', active: 'active' },
@@ -104,11 +104,7 @@
         return {
             restrict: 'E',
             replace: true,
-            template: '<table style="width: {{puzzle.size}}; height: {{puzzle.size}};" ng-click="keymove()">' +
-            '<tr ng-repeat="($row, row) in puzzle.tiles">' +
-            '<td ng-repeat="($col, tile) in row" ng-click="puzzle.move($row, $col)" data-row="{{$row}}" data-col="{{$col}}"' +
-            'title="{{tile.id}}" style="{{tile.bg}}" class="{{tile.empty ? \'empty\' : \'\'}}"></td>' +
-            '</tr></table>',
+            templateUrl: 'templates/table.html',
             link: function (scope, element, attrs) {
                 var rows, cols,
                     background =
@@ -216,6 +212,13 @@
                                 }
                             };
                         })();
+
+                        scope.$on('start', function(){
+                            scope.puzzle.shuffle();
+                        });
+                        scope.$on('init', function(){
+                            scope.puzzle.init();
+                        });
 
                         scope.puzzle.init();
                     }
