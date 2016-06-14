@@ -16,15 +16,11 @@
         });
     });
 
-    app.controller('GameController', ['$scope', '$interval', function($scope, $interval) {
+    app.controller('GameController', ['$scope', '$interval', 'leaderboardStorage', function($scope, $interval, lbStorage) {
         var stop;
 
-        $scope.navPuzzle('game');
-
-        $scope.duration = 0;
-        $scope.state = 'off';
-        $scope.stateGame = 'Start Game';
-        $scope.win_visible = false;
+        reset();
+        $scope.$emit('nav', 'game');
         
         $scope.startGame = function(){
             if($scope.state == 'off'){
@@ -33,49 +29,44 @@
                 $scope.win_visible = false;
                 $scope.$broadcast('start');
 
-                $scope.$watch('puzzle.isSuccess', function(){ //todo: remove puzzle
-                    if(!$scope.puzzle.isSuccess || $scope.state == 'off') return;
-                    
-                    $scope.state = 'off';
-                    $scope.win_visible = true;
+                $scope.$on('win', function () {
+                    if($scope.state == 'off') return;
 
-                    var _leaderboard = localStorage.getItem('leaderboard'),
-                        leaderboard = _leaderboard ? JSON.parse(_leaderboard) : [];
-                    leaderboard.push({
+                    $scope.win_visible = true;
+                    lbStorage.set({
                         date: new Date(),
                         duration: $scope.duration
                     });
-                    localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
 
-                    $scope.duration = 0;
+                    reset(true);
                     $scope.$broadcast('init');
                 });
 
                 stop = $interval(function(){ $scope.duration += 1000; }, 1000);
             } else {
+                reset();
                 $interval.cancel(stop);
-                $scope.stateGame = 'Start Game';
-                $scope.state = 'off';
-                $scope.duration = 0;
-                $scope.win_visible = false;
                 $scope.$broadcast('init');
             }
         };
 
         $scope.$on('initPuzzle', function(){
-            $scope.stateGame = 'Start Game';
-            $scope.state = 'off';
-            $scope.duration = 0;
+            reset(true);
             stop && $interval.cancel(stop);
         });
+
+        function reset(win){
+            $scope.stateGame = 'Start Game';
+            $scope.duration = 0;
+            $scope.state = 'off';
+            !win && ($scope.win_visible = false);
+        }
     }]);
     
-    app.controller('LeaderBoardController', function($scope) {
-        $scope.navPuzzle('leaderboard');
-
-        var _leaderboard = localStorage.getItem('leaderboard');
-        $scope.wins = _leaderboard ? JSON.parse(_leaderboard) : [];
-    });
+    app.controller('LeaderBoardController', ['$scope', 'leaderboardStorage', function($scope, lbStorage) {
+        $scope.$emit('nav', 'leaderboard');
+        $scope.wins = lbStorage.get();
+    }]);
 
     app.directive('navPuzzle', function(){
         return {
@@ -88,12 +79,12 @@
                     { href: 'leaderboard', text: 'Leader Board', active: '' }
                 ];
 
-                scope.navPuzzle = function(link){
+                scope.$on('nav', function(e, link){
                     for(var i = 0, l = scope.menu.length; i < l; i++){
                         var x = scope.menu[i];
                         x.active = x.href == link ? 'active' : '';
                     }
-                };
+                })
             }
         };
     });
@@ -122,7 +113,6 @@
                             return {
                                 tiles: [],
                                 size: attrs.size,
-                                isSuccess: false,
                                 move: function(row, col) {
                                     var step, x, r, c;
 
@@ -142,7 +132,6 @@
                                 },
                                 shuffle: function() {
                                     var tiles = [], r, c, x;
-                                    this.isSuccess = false;
 
                                     for (r = 0; r < rows; r++) {
                                         for (c = 0; c < cols; c++) {
@@ -170,7 +159,7 @@
                                             }
                                         }
                                     }
-                                    this.isSuccess = true;
+                                    scope.$emit('win');
                                 },
                                 init: function(){
                                     var id = 1,
@@ -179,7 +168,6 @@
                                         empty, r, c;
 
                                     this.tiles = [];
-                                    this.isSuccess = false;
 
                                     for (r = 0; r < rows; r++) {
                                         for (c = 0; c < cols; c++) {
@@ -227,12 +215,28 @@
         };
     }]);
 
-    app.filter('utc', [function() {
+    app.factory('leaderboardStorage', ['$window', function($window){
+        var lb;
+        return {
+            set: function(o){
+                lb = this.get();
+                lb.push(o);
+                $window.localStorage.setItem('leaderboard', JSON.stringify(lb));
+
+            },
+            get: function(){
+                lb = $window.localStorage.getItem('leaderboard');
+                return lb ? JSON.parse(lb) : [];
+            }
+        };
+    }]);
+
+    app.filter('utc', function() {
         return function(date) {
             if(angular.isNumber(date)) {
                 date = new Date(date);
             }
             return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(),  date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds());
         }
-    }]);
+    });
 })(window.angular);
