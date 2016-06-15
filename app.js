@@ -16,6 +16,11 @@
         });
     });
 
+    /*
+     * GameController
+     * the controller for Game tab
+     * handles the game's state and controls
+     */
     app.controller('GameController', ['$scope', '$interval', 'leaderboardStorage', function($scope, $interval, lbStorage) {
         var stop;
 
@@ -29,6 +34,7 @@
                 $scope.win_visible = false;
                 $scope.$broadcast('start');
 
+                // listener for win events from puzzle directive
                 $scope.$on('win', function () {
                     if($scope.state == 'off') return;
 
@@ -55,6 +61,7 @@
             stop && $interval.cancel(stop);
         });
 
+        // resets game's state and controls
         function reset(win){
             $scope.stateGame = 'Start Game';
             $scope.duration = 0;
@@ -62,12 +69,21 @@
             !win && ($scope.win_visible = false);
         }
     }]);
-    
+
+    /*
+     * LeaderBoardController
+     * the controller for LeaderBoard tab
+     * retrieves data about wins from localStorage
+     */
     app.controller('LeaderBoardController', ['$scope', 'leaderboardStorage', function($scope, lbStorage) {
         $scope.$emit('nav', 'leaderboard');
         $scope.wins = lbStorage.get();
     }]);
 
+    /*
+     * navPuzzle
+     * builds and handles the navigation menu
+     */
     app.directive('navPuzzle', function(){
         return {
             restrict: 'E',
@@ -89,6 +105,10 @@
         };
     });
 
+    /*
+    * puzzle
+    * builds and handles the game
+    */
     app.directive('puzzle', ['$document', function($document){
         var firsttime = true;
 
@@ -113,7 +133,7 @@
                             return {
                                 tiles: [],
                                 size: attrs.size,
-                                move: function(row, col) {
+                                move: function(row, col, shuffle) {
                                     var step, x, r, c;
 
                                     for (var s = 0; s < 4; s++) {
@@ -128,26 +148,13 @@
                                         }
                                     }
 
-                                    this.success();
+                                    !shuffle && this.success();
                                 },
                                 shuffle: function() {
-                                    var tiles = [], r, c, x;
-
-                                    for (r = 0; r < rows; r++) {
-                                        for (c = 0; c < cols; c++) {
-                                            tiles.push(this.tiles && this.tiles[r] ? this.tiles[r][c] : void(0));
-                                        }
-                                    }
-
-                                    for (var j, i = tiles.length; i > 0;) {
-                                        j = parseInt(Math.random() * i, 10);
-                                        x = tiles[--i]; tiles[i] = tiles[j]; tiles[j] = x;
-                                    }
-
-                                    for (r = 0; r < rows; r++) {
-                                        for (c = 0; c < cols; c++) {
-                                            this.tiles[r][c] = tiles.shift();
-                                        }
+                                    for (var i = 0, r, c, l = rows * cols * 100; i < l; i++) {
+                                        r = parseInt(Math.random() * rows, 10);
+                                        c = parseInt(Math.random() * cols, 10);
+                                        this.move(r, c, true);
                                     }
                                 },
                                 success: function() {
@@ -181,6 +188,7 @@
                                         }
                                     }
 
+                                    // listening key events
                                     firsttime && $document.on('keydown', function (e) {
                                         var step = [[0, 1], [1, 0], [0, -1], [-1, 0]][e.keyCode - 37],
                                             empty = element[0].querySelector('.empty'),
@@ -215,6 +223,10 @@
         };
     }]);
 
+    /*
+    * leaderboardStorage
+    * saves and retrieves the data about wins in localStorage
+    */
     app.factory('leaderboardStorage', ['$window', function($window){
         var lb;
         return {
