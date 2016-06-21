@@ -1,4 +1,4 @@
-<h2>You have {{wins.length}} wins</h2>
+<h2>You have {{lbCtrl.wins.length}} wins</h2>
 <ol>
-    <li ng-repeat="w in wins">{{w.date | date:'MMM d, y hh:mm:ss' }} - <span>{{w.duration | utc | date:'HH:mm:ss' }}</span></li>
+    <li ng-repeat="w in lbCtrl.wins">{{w.date | date:'MMM d, y hh:mm:ss' }} - <span>{{w.duration | utc | date:'HH:mm:ss' }}</span></li>
 </ol>
